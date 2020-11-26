@@ -60,7 +60,7 @@ bool settings_DST = false;
 uint8_t settings_displayBrightness = 15;
 // User settable clock separator
 uint8_t settings_separator = 0; // 0 is " ", 1 is "-", 2 is "_"
-
+uint8_t launch_count = 0;
 
 // NTP Wifi Time
 const char* ntpServer = "pool.ntp.org";
@@ -662,6 +662,11 @@ void FillCodes()
 // Randomise the order of the code being solved
 void RandomiseSolveOrder()
 {
+
+  // bws 20200929 reset code_solve array back to initial state
+  for ( uint8_t i = 0; i<12; i++)
+    code_solve_order_random[i] = 99;
+    
   for ( uint8_t i = 0; i < 12; i++ )
   {
     uint8_t ind = random(0, 12);
@@ -932,6 +937,16 @@ void loop()
             {
               RGB_SetDefcon(1, true);
               DisplayText("LAUNCHING...");
+              if (launch_count++ > 10) {
+                launch_count = 0;
+                currentState = MENU;
+                Clear();
+                DisplayText("MENU");  
+                // Reset the clock countdown now that we are back in the menu
+                // settings_clockCountdownTime is in seconds, we need milliseconds
+                countdownToClock = millis() + settings_clockCountdownTime * 1000;
+              }
+              
             }
           }
           else
